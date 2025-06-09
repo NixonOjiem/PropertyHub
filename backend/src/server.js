@@ -2,13 +2,15 @@ const express = require("express");
 const dotenv = require("dotenv");
 const routes = require("./routes");
 const cors = require("cors");
-const db = require("./config/db.js");
+const db = require("./config/db.js"); // database connection
+const authRoutes = require("./middleware/auth"); //middleware for authentication
 
 dotenv.config();
 const app = express();
 app.use(cors());
 app.use(express.json());
 app.use("/", routes);
+app.use("/auth", authRoutes); // Use the auth middleware for authentication routes
 
 db.getConnection()
   .then((connection) => {
