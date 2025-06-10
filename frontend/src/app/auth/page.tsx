@@ -18,7 +18,8 @@ function Page() {
                     const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_ROUTE}/auth/signup`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ userName, email, phone, password }),
+                        body: JSON.stringify({ username: userName, email, phone, password }),
+
                     });
 
                     if (!response.ok) throw new Error('Network response was not ok');

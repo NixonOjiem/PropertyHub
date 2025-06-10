@@ -1,24 +1,22 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const mysql = require("mysql2/promise");
-
+const pool = require("../config/db.js"); // Import the connection pool
 const router = express.Router();
 
 // **Manual Signup**
-
 router.post("/signup", async (req, res) => {
-  const { email, username, password } = req.body;
-  const hashedPassword = await bcrypt.hash(password, 10);
+  const { email, username, password, phone } = req.body;
 
   try {
-    const db = await mysql.createConnection(dbConfig);
-    const [result] = await db.execute(
-      "INSERT INTO users (email, username, password) VALUES (?, ?, ?)",
-      [email, username, hashedPassword]
+    if (!email || !username || !password || !phone) {
+      return res.status(400).json({ error: "All fields are required." });
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const [result] = await pool.execute(
+      "INSERT INTO users (email, username, password_hash, phone) VALUES (?, ?, ?, ?)",
+      [email, username, hashedPassword, phone]
     );
-
-    await db.end(); // Close the connection
 
     if (result.affectedRows) {
       const token = jwt.sign(
@@ -26,27 +24,30 @@ router.post("/signup", async (req, res) => {
         process.env.JWT_SECRET,
         { expiresIn: "1h" }
       );
-      res.json({ message: "Signup successful", token });
-    } else {
-      res.status(500).json({ error: "Signup failed" });
+      return res.json({ message: "Signup successful", token });
     }
+
+    res.status(500).json({ error: "Signup failed" });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Signup error:", error);
+    res.status(500).json({ error: "An internal error occurred during signup" });
   }
 });
 
 // **Manual Login**
-
 router.post("/login", async (req, res) => {
   const { username, password } = req.body;
-
   try {
-    const db = await mysql.createConnection(dbConfig);
-    const [rows] = await db.execute("SELECT * FROM users WHERE username = ?", [
-      username,
-    ]);
-    await db.end(); // Close the connection
+    if (!username || !password) {
+      return res
+        .status(400)
+        .json({ error: "Username and password are required." });
+    }
 
+    const [rows] = await pool.execute(
+      "SELECT * FROM users WHERE username = ?",
+      [username]
+    );
     if (
       rows.length === 0 ||
       !(await bcrypt.compare(password, rows[0].password))
@@ -59,7 +60,8 @@ router.post("/login", async (req, res) => {
     });
     res.json({ message: "Login successful", token });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Login error:", error);
+    res.status(500).json({ error: "An internal error occurred during login" });
   }
 });
 
