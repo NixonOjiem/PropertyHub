@@ -1,28 +1,62 @@
 'use client'
-import React from 'react'
-import './auth.css'
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import './auth.css';
+
+function Page() {
+    const [userName, setUserName] = useState('');
+    const [email, setEmail] = useState('');
+    const [phone, setPhone] = useState('');
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [signupSuccess, setSignupSuccess] = useState(false);
+
+    // useEffect to handle signup when signupSuccess is true
+    useEffect(() => {
+        if (signupSuccess) {
+            const signup = async () => {
+                try {
+                    const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_ROUTE}/auth/signup`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userName, email, phone, password }),
+                    });
+
+                    if (!response.ok) throw new Error('Network response was not ok');
+
+                    const data = await response.json();
+                    console.log('Signup successful:', data);
+                    alert('Sign-up successful!');
+                } catch (error) {
+                    console.error('Error during signup:', error);
+                }
+            };
+
+            signup();
+            setSignupSuccess(false); // Reset state after signup
+        }
+    }, [signupSuccess]); // Runs when signupSuccess changes
 
 
-function page() {
-	const [userName, setUserName] = useState('');
-	
-
+    // Signup handler that triggers useEffect
     const handleSignup: React.MouseEventHandler<HTMLButtonElement> = (event) => {
-    event.preventDefault(); // Prevent default form behavior
-    
-    console.log("Sign-up clicked!");
-};
+        event.preventDefault();
+        if (password !== confirmPassword) {
+            alert('Passwords do not match!');
+            return;
+        }
+        setSignupSuccess(true); // Trigger useEffect
+        console.log('Sign-up clicked!');
+    };
 
-const handleLogin: React.MouseEventHandler<HTMLButtonElement> = (event) => {
-    event.preventDefault(); // Prevent default form behavior
-    console.log("Sign-in clicked!");
-};
+    const handleSignupJWT: React.MouseEventHandler<HTMLButtonElement> = (event) => {
+        event.preventDefault();
+        
+        console.log('Sign-up JWT clicked!');
+    };
 
-const handleSignupJWT: React.MouseEventHandler<HTMLButtonElement> = (event) => {
-    event.preventDefault(); // Prevent default form behavior
-    console.log("Sign-in clicked!");
-};
+    const handleLogin: React.MouseEventHandler<HTMLButtonElement> = async (event) => {
+        event.preventDefault();
+    }
 
   return (
     <div className='container'>
@@ -32,11 +66,11 @@ const handleSignupJWT: React.MouseEventHandler<HTMLButtonElement> = (event) => {
 			<div className="signup">
 				<form>
 					<label htmlFor="forms" aria-hidden="true">Sign up</label>
-					<input type="text" name="txt" placeholder="User name" required />
-					<input type="email" name="email" placeholder="Email" required />
-                    <input type="number" name="number" placeholder="phone number" required />
-					<input type="password" name="pswd" placeholder="Password" required />
-					<input type="password" name="pswd" placeholder="Repeat Password" required />
+					<input type="text" name="txt" placeholder="User name" onChange={(e) => setUserName(e.target.value)} required />
+					<input type="email" placeholder="Email" onChange={(e) => setEmail(e.target.value)} required />
+                    <input type="number" name="number" placeholder="phone number" onChange={(e) => setPhone(e.target.value)} required />
+					<input type="password" name="pswd" placeholder="Password" onChange={(e) => setPassword(e.target.value)} required />
+					<input type="password" name="pswd" placeholder="Repeat Password" onChange={(e) => setConfirmPassword(e.target.value)} required />
 					<button onClick={handleSignup}>Sign up</button>
 					<p className='logintext'>or</p>
 					<button onClick={handleSignupJWT} className='googlebutton'>Sign up with google</button>
@@ -56,4 +90,4 @@ const handleSignupJWT: React.MouseEventHandler<HTMLButtonElement> = (event) => {
   )
 }
 
-export default page
+export default Page
