@@ -1,5 +1,6 @@
 'use client'
 import React, { useState, useEffect } from 'react';
+import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import './auth.css';
 
 function Page() {
@@ -73,12 +74,6 @@ function Page() {
         console.log('Sign-up clicked!');
     };
 
-    const handleSignupJWT: React.MouseEventHandler<HTMLButtonElement> = (event) => {
-        event.preventDefault();
-        
-        console.log('Sign-up JWT clicked!');
-    };
-
     const handleLogin: React.MouseEventHandler<HTMLButtonElement> = async (event) => {
         event.preventDefault();
         if (!email || !password) {
@@ -90,7 +85,32 @@ function Page() {
         console.log('Login clicked!');
     }
 
+    const handleGoogleSuccess = async (credentialResponse: any) => {
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_ROUTE}/auth/google`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token: credentialResponse.credential }),
+            });
+
+            if (!response.ok) throw new Error('Google authentication failed');
+            const data = await response.json();
+            alert(`Google authentication successful! Welcome ${data.user.name}`);
+        } catch (error) {
+            console.error('Google authentication error:', error);
+            alert('Failed to authenticate with Google');
+        }
+    };
+
+    const handleGoogleError = () => {
+        console.error('Google authentication failed');
+        alert('Google authentication failed. Please try again.');
+    };
+       
+
   return (
+    
+    <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ''}>
     <div className='container'>
 	    <div className="main">  	
 		    <input type="checkbox" id="forms" aria-hidden="true" />
@@ -105,7 +125,12 @@ function Page() {
 					<input type="password" name="pswd" placeholder="Repeat Password" onChange={(e) => setConfirmPassword(e.target.value)} required />
 					<button onClick={handleSignup}>Sign up</button>
 					<p className='logintext'>or</p>
-					<button onClick={handleSignupJWT} className='googlebutton'>Sign up with google</button>
+					<GoogleLogin
+                        onSuccess={handleGoogleSuccess}
+                        onError={handleGoogleError}
+                        useOneTap
+                        text="signup_with"
+                        shape="rectangular"/>
 				</form>
 			</div>
 
@@ -115,10 +140,16 @@ function Page() {
 					<input type="email" name="email" placeholder="Email" required onChange={(e) => setEmail(e.target.value)} />
 					<input type="password" name="pswd" placeholder="Password" required onChange={(e) => setPassword(e.target.value)} />
 					<button onClick={handleLogin}>Login</button>
+                    <GoogleLogin
+                        onSuccess={handleGoogleSuccess}
+                        onError={handleGoogleError}
+                        text="signin_with"
+                        shape="rectangular"/>
 				</form>
 			</div>
 	    </div>
     </div>
+    </GoogleOAuthProvider>
   )
 }
 
