@@ -36,21 +36,23 @@ router.post("/signup", async (req, res) => {
 
 // **Manual Login**
 router.post("/login", async (req, res) => {
-  const { username, password } = req.body;
+  const { email, password } = req.body; // 'email' from frontend is used here
+
   try {
-    if (!username || !password) {
+    if (!email || !password) {
       return res
         .status(400)
-        .json({ error: "Username and password are required." });
+        .json({ error: "Email and password are required." });
     }
 
     const [rows] = await pool.execute(
-      "SELECT * FROM users WHERE username = ?",
-      [username]
+      "SELECT * FROM users WHERE email = ?", // Querying by 'email' as per frontend
+      [email]
     );
+
     if (
       rows.length === 0 ||
-      !(await bcrypt.compare(password, rows[0].password))
+      !(await bcrypt.compare(password, rows[0].password_hash)) // <-- CORRECTED LINE
     ) {
       return res.status(401).json({ error: "Invalid credentials" });
     }

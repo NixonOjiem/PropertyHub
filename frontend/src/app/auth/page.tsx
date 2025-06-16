@@ -9,6 +9,7 @@ function Page() {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [signupSuccess, setSignupSuccess] = useState(false);
+    const [signInSuccess, setSignInSuccess] = useState(false);
 
     // useEffect to handle signup when signupSuccess is true
     useEffect(() => {
@@ -23,7 +24,6 @@ function Page() {
                     });
 
                     if (!response.ok) throw new Error('Network response was not ok');
-
                     const data = await response.json();
                     console.log('Signup successful:', data);
                     alert('Sign-up successful!');
@@ -36,6 +36,30 @@ function Page() {
             setSignupSuccess(false); // Reset state after signup
         }
     }, [signupSuccess]); // Runs when signupSuccess changes
+
+    useEffect(() => {
+  if (signInSuccess) {
+    (async () => {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_ROUTE}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          // 👇 CHANGE THIS LINE
+          body: JSON.stringify({ email, password }), // Assuming 'email' variable holds the username/email value
+        });
+
+        if (!response.ok) throw new Error('Network response was not ok');
+        const data = await response.json();
+        console.log('Login successful:', data);
+        alert('Login successful!');
+      } catch (error) {
+        console.error('Error during login:', error);
+      }
+    })();
+    setSignInSuccess(false);
+  }
+    }, [signInSuccess, email, password]); // Add email and password to dependency array if they are state variables
+
 
 
     // Signup handler that triggers useEffect
@@ -57,6 +81,13 @@ function Page() {
 
     const handleLogin: React.MouseEventHandler<HTMLButtonElement> = async (event) => {
         event.preventDefault();
+        if (!email || !password) {
+            alert('Please enter both email and password!');
+            return;
+        }
+        setSignInSuccess(true); // Trigger useEffect
+        // Here you can add the logic to handle login with JWT  
+        console.log('Login clicked!');
     }
 
   return (
@@ -81,8 +112,8 @@ function Page() {
 			<div className="login">
 				<form>
 					<label htmlFor="forms" aria-hidden="true">Login</label>
-					<input type="email" name="email" placeholder="Email" required />
-					<input type="password" name="pswd" placeholder="Password" required />
+					<input type="email" name="email" placeholder="Email" required onChange={(e) => setEmail(e.target.value)} />
+					<input type="password" name="pswd" placeholder="Password" required onChange={(e) => setPassword(e.target.value)} />
 					<button onClick={handleLogin}>Login</button>
 				</form>
 			</div>
