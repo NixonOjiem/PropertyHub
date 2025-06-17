@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import './auth.css';
+import { useRouter } from 'next/navigation';
 
 function Page() {
     const [userName, setUserName] = useState('');
@@ -11,6 +12,7 @@ function Page() {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [loginEmail, setLoginEmail] = useState('');
     const [loginPassword, setLoginPassword] = useState('');
+    const router = useRouter();
 
     // State to track if the client ID is loaded
     const [isClientLoaded, setIsClientLoaded] = useState(false);
@@ -21,7 +23,7 @@ function Page() {
     // This effect runs once on component mount to check for the Client ID.
     useEffect(() => {
         if (GOOGLE_CLIENT_ID) {
-            console.log("Google Client ID loaded:", GOOGLE_CLIENT_ID);
+            // console.log("Google Client ID loaded:", GOOGLE_CLIENT_ID);
             setIsClientLoaded(true);
         } else {
             console.error("Google Client ID not found. Check your .env.local file.");
@@ -31,6 +33,7 @@ function Page() {
 
     const handleSignup = async (event) => {
         event.preventDefault();
+        
         if (password !== confirmPassword) {
             alert('Passwords do not match!');
             return;
@@ -51,7 +54,7 @@ function Page() {
             const data = await response.json();
             console.log('Signup successful:', data);
             alert('Sign-up successful!');
-            // Example: redirect or store token
+            router.push('/maps')
             // localStorage.setItem('token', data.token);
             // window.location.href = '/dashboard';
 
@@ -83,7 +86,7 @@ function Page() {
             const data = await response.json();
             console.log('Login successful:', data);
             alert('Login successful!');
-             // Example: redirect or store token
+             router.push('/maps')
             // localStorage.setItem('token', data.token);
             // window.location.href = '/dashboard';
 
@@ -99,6 +102,7 @@ function Page() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ token: credentialResponse.credential }),
+                credentials: 'include', // Include cookies for session management
             });
 
             if (!response.ok) {
@@ -109,7 +113,7 @@ function Page() {
             const data = await response.json();
             //console.log('Google Auth successful:', data);
             alert(`Google authentication successful! Welcome ${data.user.name}`);
-             // Example: redirect or store token
+             router.push('/maps')
             // localStorage.setItem('token', data.token);
             // window.location.href = '/dashboard';
 

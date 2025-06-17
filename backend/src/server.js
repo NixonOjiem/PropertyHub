@@ -8,7 +8,16 @@ const authRoutes = require("./middleware/auth"); //middleware for authentication
 dotenv.config();
 
 const app = express();
-app.use(cors());
+
+// Configure CORS specifically for your frontend origin
+const corsOptions = {
+  origin: "http://localhost:3000", // Allow only your frontend origin
+  credentials: true, // Allow cookies to be sent
+  methods: ["GET", "POST", "PUT", "DELETE"], // Specify allowed HTTP methods
+  allowedHeaders: ["Content-Type", "Authorization"], // Specify allowed headers
+};
+
+app.use(cors(corsOptions)); // Use the configured CORS options
 app.use(express.json());
 app.use("/", routes);
 app.use("/auth", authRoutes); // Use the auth middleware for authentication routes
